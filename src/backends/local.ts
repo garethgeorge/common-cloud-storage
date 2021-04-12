@@ -93,7 +93,10 @@ class LocalBackend extends StorageBackend {
     }
 
     for await (const entry of walk(rootDir)) {
-      yield entry.substring(this.rootDir.length);
+      const resolvedPath = entry.substring(this.rootDir.length + 1);
+      if (resolvedPath.startsWith(prefix)) {
+        yield resolvedPath;
+      }
     }
   }
 }

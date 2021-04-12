@@ -1,5 +1,4 @@
-import {S3} from "aws-sdk";
-import {StorageBackend, StorageObject} from "../storagebackend";
+import { StorageBackend, StorageObject } from "../storagebackend";
 import crypto from "crypto";
 
 class CryptStorageObject extends StorageObject {
@@ -10,7 +9,7 @@ class CryptStorageObject extends StorageObject {
     this.baseObject = baseObject;
     this.encryptionKey = encryptionKey;
   }
-  
+
   getID() {
     return this.baseObject.getID();
   }
@@ -24,7 +23,7 @@ class CryptStorageObject extends StorageObject {
     const data = await this.baseObject.getData();
     const iv = data.slice(0, 16);
     const encrypted = data.slice(16);
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+    const decipher = crypto.createDecipheriv("aes-256-cbc", this.encryptionKey, iv);
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     return decrypted;
   }
@@ -37,11 +36,7 @@ class CryptBackend extends StorageBackend {
   constructor(encryptionKey: string, backend: StorageBackend) {
     super();
     this.backend = backend;
-    this.encryptionKey = crypto
-      .createHash("sha256")
-      .update(encryptionKey)
-      .digest()
-      .slice(0, 32);
+    this.encryptionKey = crypto.createHash("sha256").update(encryptionKey).digest().slice(0, 32);
   }
 
   putObject(key: string, object: Uint8Array, mimetype: string) {
@@ -51,7 +46,7 @@ class CryptBackend extends StorageBackend {
     const encrypted = Buffer.concat([iv, cipher.update(object), cipher.final()]);
     return this.backend.putObject(key, encrypted, mimetype);
   }
-  
+
   async getObject(key: string): Promise<StorageObject> {
     const res: StorageObject = await this.backend.getObject(key);
     return new CryptStorageObject(res, this.encryptionKey);
@@ -68,4 +63,4 @@ class CryptBackend extends StorageBackend {
 
 export default async (backend: StorageBackend, encryptionKey: string) => {
   return new CryptBackend(encryptionKey, backend);
-}
+};

@@ -10,15 +10,15 @@ class CryptStorageObject extends StorageObject {
     this.encryptionKey = encryptionKey;
   }
 
-  getID() {
-    return this.baseObject.getID();
-  }
   getKey() {
     return this.baseObject.getKey();
   }
-  getMimetype() {
-    return this.baseObject.getMimetype();
+
+  async getSize() {
+    // remove 16 bytes to compensate for the addition of the IV
+    return (await this.baseObject.getSize()) - 16;
   }
+
   async getData() {
     const data = await this.baseObject.getData();
     const iv = data.slice(0, 16);
@@ -39,21 +39,15 @@ class CryptBackend extends StorageBackend {
     this.encryptionKey = crypto.createHash("sha256").update(encryptionKey).digest().slice(0, 32);
   }
 
-  putObject(key: string, object: Uint8Array, mimetype: string) {
-    // TODO: generate encryption iv
+  putObject(key: string, object: Uint8Array) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv("aes-256-cbc", this.encryptionKey, iv);
     const encrypted = Buffer.concat([iv, cipher.update(object), cipher.final()]);
-    return this.backend.putObject(key, encrypted, mimetype);
+    return this.backend.putObject(key, encrypted);
   }
 
-  async getObject(key: string): Promise<StorageObject> {
-    const res: StorageObject = await this.backend.getObject(key);
-    return new CryptStorageObject(res, this.encryptionKey);
-  }
-
-  getObjectById(id: string): Promise<StorageObject> {
-    return this.backend.getObjectById(id);
+  getObject(key: string): StorageObject {
+    return new CryptStorageObject(this.backend.getObject(key), this.encryptionKey);
   }
 
   listObjectsByPrefix(prefix?: string) {

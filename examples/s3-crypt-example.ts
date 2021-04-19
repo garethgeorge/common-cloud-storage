@@ -1,3 +1,4 @@
+/*
 import { S3Backend, CryptBackend } from "../src/";
 import process from "process";
 
@@ -24,3 +25,4 @@ import process from "process";
     console.log(key);
   }
 })();
+*/

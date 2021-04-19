@@ -22,10 +22,16 @@ class LocalStorageObject extends StorageObject {
   getID() {
     return this.key;
   }
+
   getKey() {
     return this.key;
   }
-  getMimetype() {
+
+  async getSize() {
+    return (await stat(this.fullpath)).size;
+  }
+
+  async getMimetype() {
     return null;
   }
 
@@ -50,7 +56,7 @@ class LocalBackend extends StorageBackend {
     return fullpath;
   }
 
-  async putObject(key: string, object: Uint8Array, mimetype: string) {
+  async putObject(key: string, object: Uint8Array) {
     const fullpath = this.fullpath(key);
     try {
       await writeFile(fullpath, object);
@@ -58,21 +64,11 @@ class LocalBackend extends StorageBackend {
       await mkdirp(path.dirname(fullpath));
       await writeFile(fullpath, object);
     }
-    return key;
   }
 
-  async getObject(key: string): Promise<StorageObject> {
+  getObject(key: string): StorageObject {
     const fullpath = this.fullpath(key);
-    const stats = await stat(fullpath);
-    if (!stats.isFile()) {
-      throw new Error("bad key -- does not exist or is directory");
-    }
-
     return new LocalStorageObject(key, fullpath);
-  }
-
-  getObjectById(id: string): Promise<StorageObject> {
-    return this.getObject(id);
   }
 
   async *listObjectsByPrefix(prefix?: string): AsyncGenerator<string> {

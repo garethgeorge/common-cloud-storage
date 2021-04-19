@@ -3,8 +3,8 @@ import crypto from "crypto";
 
 class CryptStorageObject extends StorageObject {
   private baseObject: StorageObject;
-  private encryptionKey: Uint8Array;
-  constructor(baseObject: StorageObject, encryptionKey: Uint8Array) {
+  private encryptionKey: Buffer;
+  constructor(baseObject: StorageObject, encryptionKey: Buffer) {
     super();
     this.baseObject = baseObject;
     this.encryptionKey = encryptionKey;
@@ -31,7 +31,7 @@ class CryptStorageObject extends StorageObject {
 
 class CryptBackend extends StorageBackend {
   private backend: StorageBackend;
-  private encryptionKey: Uint8Array;
+  private encryptionKey: Buffer;
 
   constructor(encryptionKey: string, backend: StorageBackend) {
     super();
@@ -39,7 +39,7 @@ class CryptBackend extends StorageBackend {
     this.encryptionKey = crypto.createHash("sha256").update(encryptionKey).digest().slice(0, 32);
   }
 
-  putObject(key: string, object: Uint8Array) {
+  putObject(key: string, object: Buffer) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv("aes-256-cbc", this.encryptionKey, iv);
     const encrypted = Buffer.concat([iv, cipher.update(object), cipher.final()]);

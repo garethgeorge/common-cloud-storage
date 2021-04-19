@@ -6,9 +6,9 @@ export abstract class StorageObject {
   abstract getSize(): Promise<number>;
 
   /**
-   * Returns object data as a Uint8Array.
+   * Returns object data as a Buffer.
    */
-  abstract getData(): Promise<Uint8Array>;
+  abstract getData(): Promise<Buffer>;
 }
 
 export abstract class StorageBackend {
@@ -17,7 +17,7 @@ export abstract class StorageBackend {
    * @param key
    * @param object
    */
-  abstract putObject(key: string, object: Uint8Array): Promise<void>;
+  abstract putObject(key: string, object: Buffer): Promise<void>;
 
   /**
    * get an object by its key from the backing store

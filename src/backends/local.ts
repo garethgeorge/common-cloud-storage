@@ -1,5 +1,4 @@
 import { StorageBackend, StorageObject } from "../storagebackend";
-import crypto from "crypto";
 import fs from "fs";
 import { promisify } from "util";
 import path from "path";
@@ -8,7 +7,6 @@ import mkdirp from "mkdirp";
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
-const readdir = promisify(fs.readdir);
 
 class LocalStorageObject extends StorageObject {
   private fullpath: string;
@@ -56,7 +54,7 @@ class LocalBackend extends StorageBackend {
     return fullpath;
   }
 
-  async putObject(key: string, object: Uint8Array) {
+  async putObject(key: string, object: Buffer) {
     const fullpath = this.fullpath(key);
     try {
       await writeFile(fullpath, object);
